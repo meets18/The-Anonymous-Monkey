@@ -16,20 +16,21 @@ class Processor:
 
         return self.detector.detect(image)
 
-    def process_image(self, image_path, selected_ids, mode="blur"):
+    def process_image(self, image_path, selected_ids, mode="blur", options=None):
         image = cv2.imread(image_path)
         if image is None:
             raise ValueError("Unable to read image from the provided path.")
 
+        process_options = options or {}
 
         faces = self.detector.detect(image)
 
         if mode == "blur":
             output = apply_blur(image, faces, selected_ids)
         elif mode == "pixelate":
-            output = apply_pixelation(image, faces, selected_ids)
+            output = apply_pixelation(image, faces, selected_ids, process_options)
         elif mode == "mask":
-            output = apply_mask(image, faces, selected_ids)
+            output = apply_mask(image, faces, selected_ids, process_options)
         else:
             output = image
 

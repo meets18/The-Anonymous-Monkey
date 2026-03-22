@@ -63,14 +63,16 @@ def analyze_image(filepath: str):
     }
 
 
-def process_image(filepath: str, allowed_ids=None, mode="blur", output_dir="output"):
+def process_image(filepath: str, allowed_ids=None, mode="blur", options=None, output_dir="output"):
     source_path = _validate_image_path(filepath)
     selected_ids = allowed_ids or []
+    process_options = options or {}
 
     output_image, faces = processor.process_image(
         str(source_path),
         selected_ids,
         mode=mode,
+        options=process_options,
     )
 
     if output_image is None:
@@ -87,5 +89,6 @@ def process_image(filepath: str, allowed_ids=None, mode="blur", output_dir="outp
         "faces": _face_payload(faces),
         "face_count": len(faces),
         "mode": mode,
+        "options": process_options,
         "processed_ids": selected_ids,
     }

@@ -32,15 +32,19 @@ def process():
 
     allowed_ids = data.get("allowed_ids", [])
     mode = data.get("mode", "blur")
+    options = data.get("options", {})
 
     if not isinstance(allowed_ids, list):
         return jsonify({"error": "allowed_ids must be a list"}), 400
+    if not isinstance(options, dict):
+        return jsonify({"error": "options must be an object"}), 400
 
     try:
         result = process_image(
             filepath=filepath,
             allowed_ids=allowed_ids,
             mode=mode,
+            options=options,
             output_dir=current_app.config["OUTPUT_FOLDER"],
         )
     except FileNotFoundError as exc:

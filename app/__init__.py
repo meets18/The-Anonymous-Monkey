@@ -31,6 +31,6 @@ def create_app():
 
     @app.route("/")
     def index():
-        return send_from_directory(app.static_folder, "index.html")
+        return send_from_directory(app.static_folder, "face-anonymizer.html")
 
     return app

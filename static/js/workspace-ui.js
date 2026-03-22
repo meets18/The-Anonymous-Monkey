@@ -5,66 +5,52 @@
         faces: [],
         selectedIds: new Set(),
         mode: "blur",
+        pixelateStyle: "standard",
+        maskStyle: "black_box",
+        maskImagePath: "",
     };
 
     const elements = {
         uploadForm: document.getElementById("uploadForm"),
         imageFile: document.getElementById("imageFile"),
+        selectedFile: document.getElementById("selectedFile"),
         uploadAnalyzeBtn: document.getElementById("uploadAnalyzeBtn"),
         processBtn: document.getElementById("processBtn"),
         modeSelect: document.getElementById("modeSelect"),
+        pixelateStyle: document.getElementById("pixelateStyle"),
+        maskStyle: document.getElementById("maskStyle"),
+        maskImageFile: document.getElementById("maskImageFile"),
+        maskImageStatus: document.getElementById("maskImageStatus"),
+        pixelateOptions: document.getElementById("pixelateOptions"),
+        maskOptions: document.getElementById("maskOptions"),
+        maskImageGroup: document.getElementById("maskImageGroup"),
         originalPreview: document.getElementById("originalPreview"),
         processedPreview: document.getElementById("processedPreview"),
         originalPlaceholder: document.getElementById("originalPlaceholder"),
         processedPlaceholder: document.getElementById("processedPlaceholder"),
         faceOverlay: document.getElementById("faceOverlay"),
         faceList: document.getElementById("faceList"),
-        facesDetected: document.getElementById("facesDetected"),
-        facesSelected: document.getElementById("facesSelected"),
-        currentModeLabel: document.getElementById("currentModeLabel"),
-        pipelineStatus: document.getElementById("pipelineStatus"),
-        statusHint: document.getElementById("statusHint"),
         statusBanner: document.getElementById("statusBanner"),
-        uploadedPath: document.getElementById("uploadedPath"),
-        outputPath: document.getElementById("outputPath"),
-        selectedIds: document.getElementById("selectedIds"),
-        activityLog: document.getElementById("activityLog"),
         downloadOutput: document.getElementById("downloadOutput"),
         selectAllBtn: document.getElementById("selectAllBtn"),
         clearAllBtn: document.getElementById("clearAllBtn"),
     };
 
-    function capitalize(text) {
-        return text.charAt(0).toUpperCase() + text.slice(1);
+    function setStatus(message) {
+        elements.statusBanner.textContent = message;
     }
 
-    function logActivity(message) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "activity-item custom";
-        wrapper.innerHTML = `
-            <div class="activity-avatar log">AI</div>
-            <div class="activity-content">
-                <div class="activity-text">${message}</div>
-                <span class="activity-time">${new Date().toLocaleTimeString()}</span>
-            </div>
-        `;
-        elements.activityLog.prepend(wrapper);
-    }
-
-    function setStatus(status, hint, banner) {
-        elements.pipelineStatus.textContent = status;
-        elements.statusHint.textContent = hint;
-        elements.statusBanner.textContent = banner;
-    }
-
-    function updateSummary() {
-        elements.facesDetected.textContent = String(state.faces.length);
-        elements.facesSelected.textContent = String(state.selectedIds.size);
-        elements.currentModeLabel.textContent = capitalize(state.mode);
-        elements.uploadedPath.textContent = state.uploadedPath || "Not uploaded";
-        elements.outputPath.textContent = state.outputPath || "Not generated";
-        elements.selectedIds.textContent = JSON.stringify(Array.from(state.selectedIds));
+    function updateActions() {
         elements.processBtn.disabled = !state.uploadedPath || state.faces.length === 0 || state.selectedIds.size === 0;
+    }
+
+    function updateModeUI() {
+        elements.pixelateOptions.classList.toggle("hidden", state.mode !== "pixelate");
+        elements.maskOptions.classList.toggle("hidden", state.mode !== "mask");
+        elements.maskImageGroup.classList.toggle(
+            "hidden",
+            !(state.mode === "mask" && state.maskStyle === "image_overlay")
+        );
     }
 
     function resetProcessedPreview() {
@@ -73,7 +59,7 @@
         elements.processedPlaceholder.classList.remove("hidden");
         elements.downloadOutput.classList.add("hidden");
         state.outputPath = "";
-        updateSummary();
+        updateActions();
     }
 
     function previewLocalFile(file) {
@@ -81,6 +67,7 @@
         elements.originalPreview.src = localUrl;
         elements.originalPreview.classList.add("visible");
         elements.originalPlaceholder.classList.add("hidden");
+        elements.selectedFile.textContent = `Selected image: ${file.name}`;
         elements.originalPreview.onload = () => renderFaceOverlay();
     }
 
@@ -88,7 +75,7 @@
         elements.faceList.innerHTML = "";
 
         if (state.faces.length === 0) {
-            elements.faceList.innerHTML = '<div class="empty-state">No faces detected yet.</div>';
+            elements.faceList.innerHTML = '<div class="empty-state">No faces were detected in this image.</div>';
             return;
         }
 
@@ -98,10 +85,10 @@
             item.innerHTML = `
                 <div class="face-meta">
                     <div class="face-title">Face ${face.id}</div>
-                    <div class="face-caption">bbox: [${face.bbox.join(", ")}]</div>
+                    <div class="face-caption">Use this face in the final output</div>
                 </div>
                 <div class="face-toggle">
-                    <span>Mask this face</span>
+                    <span>Select</span>
                     <input type="checkbox" data-face-id="${face.id}" ${state.selectedIds.has(face.id) ? "checked" : ""}>
                 </div>
             `;
@@ -142,28 +129,30 @@
         ).map((input) => Number(input.dataset.faceId));
 
         state.selectedIds = new Set(checkedIds);
-        updateSummary();
+        updateActions();
         renderFaceOverlay();
+        setStatus(`${state.selectedIds.size} face(s) selected. Create output when you're ready.`);
     }
 
-    async function uploadAndAnalyze(file) {
+    async function uploadFile(file) {
         const formData = new FormData();
         formData.append("file", file);
 
-        setStatus("Uploading", "Sending image", "Uploading image to Flask backend...");
-        logActivity("Uploading image to /upload.");
-
-        const uploadResponse = await fetch("/upload", {
+        const response = await fetch("/upload", {
             method: "POST",
             body: formData,
         });
-        const uploadData = await uploadResponse.json();
-        if (!uploadResponse.ok) {
-            throw new Error(uploadData.error || "Upload failed.");
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || "Upload failed.");
         }
+        return data;
+    }
 
+    async function uploadAndAnalyze(file) {
+        setStatus("Uploading image and preparing face selection...");
+        const uploadData = await uploadFile(file);
         state.uploadedPath = uploadData.filepath;
-        logActivity("Upload finished. Calling /analyze for face detection.");
 
         const analyzeResponse = await fetch("/analyze", {
             method: "POST",
@@ -177,21 +166,42 @@
 
         state.faces = analyzeData.faces || [];
         state.selectedIds = new Set(state.faces.map((face) => face.id));
-        updateSummary();
+        updateActions();
         renderFaceList();
         renderFaceOverlay();
 
-        setStatus(
-            "Analyzed",
-            `${state.faces.length} faces ready`,
-            `Detected ${state.faces.length} face(s). Adjust the selections and process when ready.`
-        );
-        logActivity(`Analyze completed with ${state.faces.length} detected face(s).`);
+        if (state.faces.length === 0) {
+            setStatus("No faces were found. The app now checks frontal, side-profile, and slightly rotated faces, but very small or heavily stylized faces may still need a closer crop.");
+            return;
+        }
+
+        setStatus(`Image ready. ${state.faces.length} face(s) detected for selection.`);
+    }
+
+    async function ensureMaskImageUploaded() {
+        if (!(state.mode === "mask" && state.maskStyle === "image_overlay")) {
+            return "";
+        }
+
+        const file = elements.maskImageFile.files[0];
+        if (!file) {
+            throw new Error("Choose an overlay image for the mask mode.");
+        }
+
+        if (state.maskImagePath) {
+            return state.maskImagePath;
+        }
+
+        elements.maskImageStatus.textContent = "Uploading overlay image...";
+        const uploadData = await uploadFile(file);
+        state.maskImagePath = uploadData.filepath;
+        elements.maskImageStatus.textContent = `Overlay image: ${file.name}`;
+        return state.maskImagePath;
     }
 
     async function processImage() {
-        setStatus("Processing", "Applying anonymizer", `Processing ${state.selectedIds.size} selected face(s) with ${state.mode} mode.`);
-        logActivity(`Calling /process with mode "${state.mode}".`);
+        setStatus(`Creating output for ${state.selectedIds.size} selected face(s)...`);
+        const maskImagePath = await ensureMaskImageUploaded();
 
         const response = await fetch("/process", {
             method: "POST",
@@ -200,6 +210,11 @@
                 filepath: state.uploadedPath,
                 allowed_ids: Array.from(state.selectedIds),
                 mode: state.mode,
+                options: {
+                    pixelate_style: state.pixelateStyle,
+                    mask_style: state.maskStyle,
+                    mask_image_path: maskImagePath,
+                },
             }),
         });
         const data = await response.json();
@@ -217,27 +232,75 @@
         elements.downloadOutput.href = outputUrl;
         elements.downloadOutput.classList.remove("hidden");
 
-        setStatus("Complete", "Output saved", "Processed image generated successfully.");
-        updateSummary();
-        logActivity("Processing completed and output preview updated.");
-    }
-
-    function handleModeChange() {
-        state.mode = elements.modeSelect.value;
-        updateSummary();
-        if (state.uploadedPath) {
-            resetProcessedPreview();
-            logActivity(`Mode switched to "${state.mode}".`);
-        }
+        setStatus("Output ready. You can preview it now or download the image.");
+        updateActions();
     }
 
     function initEvents() {
+        elements.imageFile.addEventListener("change", () => {
+            const file = elements.imageFile.files[0];
+            if (!file) {
+                elements.selectedFile.textContent = "No image selected yet.";
+                return;
+            }
+
+            previewLocalFile(file);
+            state.faces = [];
+            state.selectedIds = new Set();
+            state.uploadedPath = "";
+            renderFaceList();
+            renderFaceOverlay();
+            resetProcessedPreview();
+            setStatus("Preview updated. Upload the image when you're ready.");
+        });
+
+        elements.modeSelect.addEventListener("change", () => {
+            state.mode = elements.modeSelect.value;
+            updateModeUI();
+            resetProcessedPreview();
+        });
+
+        elements.pixelateStyle.addEventListener("change", () => {
+            state.pixelateStyle = elements.pixelateStyle.value;
+            resetProcessedPreview();
+        });
+
+        elements.maskStyle.addEventListener("change", () => {
+            state.maskStyle = elements.maskStyle.value;
+            updateModeUI();
+            resetProcessedPreview();
+        });
+
+        elements.maskImageFile.addEventListener("change", async () => {
+            const file = elements.maskImageFile.files[0];
+            state.maskImagePath = "";
+
+            if (!file) {
+                elements.maskImageStatus.textContent = "No overlay image selected.";
+                resetProcessedPreview();
+                return;
+            }
+
+            elements.maskImageStatus.textContent = `Uploading overlay image: ${file.name}`;
+            resetProcessedPreview();
+
+            try {
+                const uploadData = await uploadFile(file);
+                state.maskImagePath = uploadData.filepath;
+                elements.maskImageStatus.textContent = `Overlay image uploaded: ${file.name}`;
+                setStatus("Overlay image uploaded. Create output when you're ready.");
+            } catch (error) {
+                elements.maskImageStatus.textContent = `Overlay upload failed: ${file.name}`;
+                setStatus(error.message);
+            }
+        });
+
         elements.uploadForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
             const file = elements.imageFile.files[0];
             if (!file) {
-                setStatus("Idle", "No image chosen", "Please choose an image before uploading.");
+                setStatus("Please choose an image before uploading.");
                 return;
             }
 
@@ -248,8 +311,7 @@
                 elements.uploadAnalyzeBtn.disabled = true;
                 await uploadAndAnalyze(file);
             } catch (error) {
-                setStatus("Error", "Request failed", error.message);
-                logActivity(`Error: ${error.message}`);
+                setStatus(error.message);
             } finally {
                 elements.uploadAnalyzeBtn.disabled = false;
             }
@@ -257,7 +319,7 @@
 
         elements.processBtn.addEventListener("click", async () => {
             if (!state.uploadedPath || state.selectedIds.size === 0) {
-                setStatus("Idle", "Nothing to process", "Upload, analyze, and select at least one face before processing.");
+                setStatus("Upload an image and select at least one face before creating output.");
                 return;
             }
 
@@ -265,15 +327,12 @@
                 elements.processBtn.disabled = true;
                 await processImage();
             } catch (error) {
-                setStatus("Error", "Processing failed", error.message);
-                logActivity(`Error: ${error.message}`);
+                setStatus(error.message);
             } finally {
                 elements.processBtn.disabled = false;
-                updateSummary();
+                updateActions();
             }
         });
-
-        elements.modeSelect.addEventListener("change", handleModeChange);
 
         elements.faceList.addEventListener("change", (event) => {
             if (event.target.matches('input[type="checkbox"]')) {
@@ -284,15 +343,17 @@
         elements.selectAllBtn.addEventListener("click", () => {
             state.selectedIds = new Set(state.faces.map((face) => face.id));
             renderFaceList();
-            updateSummary();
+            updateActions();
             renderFaceOverlay();
+            setStatus(`All ${state.selectedIds.size} face(s) selected.`);
         });
 
         elements.clearAllBtn.addEventListener("click", () => {
             state.selectedIds = new Set();
             renderFaceList();
-            updateSummary();
+            updateActions();
             renderFaceOverlay();
+            setStatus("Selection cleared. Choose the faces you want in the output.");
         });
 
         window.addEventListener("resize", renderFaceOverlay);
@@ -300,9 +361,9 @@
     }
 
     function init() {
-        updateSummary();
-        setStatus("Idle", "Waiting for image", "Choose an image to begin.");
-        logActivity("Frontend ready. Waiting for an upload.");
+        updateActions();
+        updateModeUI();
+        setStatus("Choose an image to begin.");
         initEvents();
     }
 
