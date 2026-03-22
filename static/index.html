@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Anonymizer Dashboard</title>
+    <link rel="stylesheet" href="/static/css/templatemo-glass-admin-style.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="background"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">FA</div>
+                <div>
+                    <div class="logo-text">Face Anonymizer</div>
+                    <p class="sidebar-tagline">Privacy-first image workflow</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Workflow</div>
+                    <div class="nav-item">
+                        <a class="nav-link active" href="#workspace">
+                            <span class="nav-icon">1</span>
+                            <span>Upload & Analyze</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="#selection">
+                            <span class="nav-icon">2</span>
+                            <span>Select Faces</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="#result">
+                            <span class="nav-icon">3</span>
+                            <span>Process Output</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">AI</div>
+                    <div class="user-info">
+                        <div class="user-name">Backend Connected</div>
+                        <div class="user-role">Flask + CV Pipeline</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="navbar">
+                <div>
+                    <h1 class="page-title">Face Anonymizer Dashboard</h1>
+                    <p class="page-subtitle">Upload an image, inspect detected faces, and anonymize only the people you choose.</p>
+                </div>
+                <div class="navbar-right">
+                    <button class="nav-btn" id="theme-toggle" type="button" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3c0.5 0 0.77 0.56 0.45 0.95A7 7 0 0 0 20.05 12c0.39-0.32 0.95-0.05 0.95 0.45z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <article class="glass-card stat-card glass-card-3d">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Faces Detected</h3>
+                            <div class="stat-value" id="facesDetected">0</div>
+                            <div class="stat-change positive">Live after analyze</div>
+                        </div>
+                        <div class="stat-icon cyan"><span>FD</span></div>
+                    </div>
+                </article>
+
+                <article class="glass-card stat-card glass-card-3d">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Faces Selected</h3>
+                            <div class="stat-value" id="facesSelected">0</div>
+                            <div class="stat-change positive">Ready to process</div>
+                        </div>
+                        <div class="stat-icon magenta"><span>FS</span></div>
+                    </div>
+                </article>
+
+                <article class="glass-card stat-card glass-card-3d">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Current Mode</h3>
+                            <div class="stat-text-value" id="currentModeLabel">Blur</div>
+                            <div class="stat-change positive">Switch anytime</div>
+                        </div>
+                        <div class="stat-icon purple"><span>FX</span></div>
+                    </div>
+                </article>
+
+                <article class="glass-card stat-card glass-card-3d">
+                    <div class="stat-card-inner">
+                        <div class="stat-info">
+                            <h3>Pipeline Status</h3>
+                            <div class="stat-text-value" id="pipelineStatus">Idle</div>
+                            <div class="stat-change positive" id="statusHint">Waiting for image</div>
+                        </div>
+                        <div class="stat-icon success"><span>OK</span></div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="content-grid" id="workspace">
+                <article class="glass-card workspace-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Upload Workspace</h2>
+                            <p class="card-subtitle">Start with a local image, then let the backend detect the faces for selection.</p>
+                        </div>
+                    </div>
+
+                    <form id="uploadForm" class="workflow-form">
+                        <label class="upload-dropzone" for="imageFile">
+                            <input id="imageFile" name="file" type="file" accept="image/*" required>
+                            <span class="dropzone-title">Drop an image here or click to browse</span>
+                            <span class="dropzone-subtitle">Supported: JPG, JPEG, PNG, BMP, WEBP</span>
+                        </label>
+
+                        <div class="form-grid workflow-grid">
+                            <div class="form-group-settings">
+                                <label for="modeSelect">Anonymization Mode</label>
+                                <select id="modeSelect" class="settings-select">
+                                    <option value="blur">Blur</option>
+                                    <option value="pixelate">Pixelate</option>
+                                    <option value="mask">Mask</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-settings">
+                                <label>Workflow Actions</label>
+                                <div class="action-row">
+                                    <button class="btn btn-primary" id="uploadAnalyzeBtn" type="submit">Upload and Analyze</button>
+                                    <button class="btn btn-secondary" id="processBtn" type="button" disabled>Process Image</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="status-banner" id="statusBanner">Choose an image to begin.</div>
+                </article>
+
+                <article class="glass-card activity-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Session Activity</h2>
+                            <p class="card-subtitle">A simple trace of what the frontend is doing with your Flask API.</p>
+                        </div>
+                    </div>
+                    <div class="activity-list" id="activityLog"></div>
+                </article>
+            </section>
+
+            <section class="preview-grid">
+                <article class="glass-card preview-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Original Preview</h2>
+                            <p class="card-subtitle">Detected faces appear as numbered overlays.</p>
+                        </div>
+                    </div>
+                    <div class="preview-frame" id="selection">
+                        <img id="originalPreview" alt="Original upload preview">
+                        <div class="face-overlay" id="faceOverlay"></div>
+                        <div class="preview-placeholder" id="originalPlaceholder">Upload an image to preview it here.</div>
+                    </div>
+                </article>
+
+                <article class="glass-card preview-card" id="result">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Processed Result</h2>
+                            <p class="card-subtitle">The final anonymized image is shown here after processing.</p>
+                        </div>
+                        <a class="card-btn hidden" id="downloadOutput" download>Download</a>
+                    </div>
+                    <div class="preview-frame">
+                        <img id="processedPreview" alt="Processed image preview">
+                        <div class="preview-placeholder" id="processedPlaceholder">Process the image to generate a result preview.</div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="bottom-grid">
+                <article class="glass-card face-card-panel">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Detected Faces</h2>
+                            <p class="card-subtitle">Toggle the faces you want anonymized before processing.</p>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-btn" id="selectAllBtn" type="button">Select All</button>
+                            <button class="card-btn" id="clearAllBtn" type="button">Clear All</button>
+                        </div>
+                    </div>
+                    <div class="face-list" id="faceList">
+                        <div class="empty-state">No faces detected yet.</div>
+                    </div>
+                </article>
+
+                <article class="glass-card summary-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Request Summary</h2>
+                            <p class="card-subtitle">Useful payload details while you test the app and discuss the workflow.</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-group">
+                        <span class="summary-label">Uploaded File</span>
+                        <code class="summary-value" id="uploadedPath">Not uploaded</code>
+                    </div>
+
+                    <div class="summary-group">
+                        <span class="summary-label">Output File</span>
+                        <code class="summary-value" id="outputPath">Not generated</code>
+                    </div>
+
+                    <div class="summary-group">
+                        <span class="summary-label">Selected IDs</span>
+                        <code class="summary-value" id="selectedIds">[]</code>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <button class="mobile-menu-toggle" type="button" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <script src="/static/js/templatemo-glass-admin-script.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
+
