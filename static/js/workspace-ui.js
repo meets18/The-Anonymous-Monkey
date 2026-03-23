@@ -8,9 +8,11 @@
         pixelateStyle: "standard",
         maskStyle: "black_box",
         maskImagePath: "",
+        activeScreen: "upload",
     };
 
     const elements = {
+        splashScreen: document.getElementById("splashScreen"),
         uploadForm: document.getElementById("uploadForm"),
         imageFile: document.getElementById("imageFile"),
         selectedFile: document.getElementById("selectedFile"),
@@ -34,14 +36,81 @@
         downloadOutput: document.getElementById("downloadOutput"),
         selectAllBtn: document.getElementById("selectAllBtn"),
         clearAllBtn: document.getElementById("clearAllBtn"),
+        stepNavUpload: document.getElementById("stepNavUpload"),
+        stepNavSelect: document.getElementById("stepNavSelect"),
+        stepNavOutput: document.getElementById("stepNavOutput"),
+        backToUploadBtn: document.getElementById("backToUploadBtn"),
+        toOutputBtn: document.getElementById("toOutputBtn"),
+        backToSelectBtn: document.getElementById("backToSelectBtn"),
+        screens: Array.from(document.querySelectorAll(".screen-panel[data-screen]")),
     };
+
+    function runSplashSequence() {
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const splashDuration = reducedMotion ? 150 : 3600;
+
+        window.setTimeout(() => {
+            document.body.classList.remove("splash-active");
+            document.body.classList.add("splash-complete");
+
+            if (elements.splashScreen) {
+                elements.splashScreen.setAttribute("aria-hidden", "true");
+            }
+        }, splashDuration);
+    }
 
     function setStatus(message) {
         elements.statusBanner.textContent = message;
     }
 
+    function canOpenSelect() {
+        return Boolean(state.uploadedPath);
+    }
+
+    function canOpenOutput() {
+        return Boolean(state.uploadedPath) && state.faces.length > 0 && state.selectedIds.size > 0;
+    }
+
+    function updateStepAvailability() {
+        elements.stepNavSelect.disabled = !canOpenSelect();
+        elements.stepNavOutput.disabled = !canOpenOutput();
+        elements.toOutputBtn.disabled = !canOpenOutput();
+    }
+
+    function showScreen(screenName) {
+        if (screenName === "select" && !canOpenSelect()) {
+            return;
+        }
+
+        if (screenName === "output" && !canOpenOutput()) {
+            return;
+        }
+
+        state.activeScreen = screenName;
+
+        elements.screens.forEach((screen) => {
+            const isActive = screen.dataset.screen === screenName;
+            screen.classList.toggle("screen-panel-active", isActive);
+        });
+
+        [elements.stepNavUpload, elements.stepNavSelect, elements.stepNavOutput].forEach((button) => {
+            const isActive = button.dataset.screen === screenName;
+            button.classList.toggle("active", isActive);
+            if (isActive) {
+                button.setAttribute("aria-current", "step");
+            } else {
+                button.removeAttribute("aria-current");
+            }
+        });
+
+        if (screenName === "select") {
+            renderFaceOverlay();
+        }
+    }
+
     function updateActions() {
-        elements.processBtn.disabled = !state.uploadedPath || state.faces.length === 0 || state.selectedIds.size === 0;
+        elements.processBtn.disabled = !canOpenOutput();
+        updateStepAvailability();
     }
 
     function updateModeUI() {
@@ -62,6 +131,16 @@
         updateActions();
     }
 
+    function resetSelectionState() {
+        state.faces = [];
+        state.selectedIds = new Set();
+        state.uploadedPath = "";
+        renderFaceList();
+        renderFaceOverlay();
+        resetProcessedPreview();
+        updateActions();
+    }
+
     function previewLocalFile(file) {
         const localUrl = URL.createObjectURL(file);
         elements.originalPreview.src = localUrl;
@@ -75,7 +154,10 @@
         elements.faceList.innerHTML = "";
 
         if (state.faces.length === 0) {
-            elements.faceList.innerHTML = '<div class="empty-state">No faces were detected in this image.</div>';
+            const emptyMessage = state.uploadedPath
+                ? "No faces were detected in this image."
+                : "Detected faces will show up here after upload.";
+            elements.faceList.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
             return;
         }
 
@@ -85,10 +167,10 @@
             item.innerHTML = `
                 <div class="face-meta">
                     <div class="face-title">Face ${face.id}</div>
-                    <div class="face-caption">Use this face in the final output</div>
+                    <div class="face-caption">Keep this face visible in the final image</div>
                 </div>
                 <div class="face-toggle">
-                    <span>Select</span>
+                    <span>Keep</span>
                     <input type="checkbox" data-face-id="${face.id}" ${state.selectedIds.has(face.id) ? "checked" : ""}>
                 </div>
             `;
@@ -111,7 +193,12 @@
         const offsetTop = imageRect.top - containerRect.top;
 
         state.faces.forEach((face) => {
-            const [x, y, w, h] = face.bbox;
+            const bbox = face.bbox || [];
+            const [x, y, w, h] = bbox;
+            if (bbox.length !== 4) {
+                return;
+            }
+
             const box = document.createElement("div");
             box.className = `face-box ${state.selectedIds.has(face.id) ? "selected" : ""}`;
             box.style.left = `${offsetLeft + (x * scaleX)}px`;
@@ -131,7 +218,13 @@
         state.selectedIds = new Set(checkedIds);
         updateActions();
         renderFaceOverlay();
-        setStatus(`${state.selectedIds.size} face(s) selected. Create output when you're ready.`);
+
+        if (state.selectedIds.size === 0) {
+            setStatus("No faces selected yet. Choose at least one face to keep before continuing.");
+            return;
+        }
+
+        setStatus(`${state.selectedIds.size} face(s) marked to stay visible. Continue when you're ready.`);
     }
 
     async function uploadFile(file) {
@@ -150,7 +243,7 @@
     }
 
     async function uploadAndAnalyze(file) {
-        setStatus("Uploading image and preparing face selection...");
+        setStatus("Uploading image and looking for faces...");
         const uploadData = await uploadFile(file);
         state.uploadedPath = uploadData.filepath;
 
@@ -166,16 +259,18 @@
 
         state.faces = analyzeData.faces || [];
         state.selectedIds = new Set(state.faces.map((face) => face.id));
-        updateActions();
         renderFaceList();
         renderFaceOverlay();
+        updateActions();
 
         if (state.faces.length === 0) {
-            setStatus("No faces were found. The app now checks frontal, side-profile, and slightly rotated faces, but very small or heavily stylized faces may still need a closer crop.");
+            setStatus("No faces were found. Try a clearer image or a tighter crop.");
+            showScreen("select");
             return;
         }
 
-        setStatus(`Image ready. ${state.faces.length} face(s) detected for selection.`);
+        setStatus(`Image ready. ${state.faces.length} face(s) detected and pre-selected.`);
+        showScreen("select");
     }
 
     async function ensureMaskImageUploaded() {
@@ -232,7 +327,7 @@
         elements.downloadOutput.href = outputUrl;
         elements.downloadOutput.classList.remove("hidden");
 
-        setStatus("Output ready. You can preview it now or download the image.");
+        setStatus("Output ready. Preview it here or download the image.");
         updateActions();
     }
 
@@ -241,17 +336,15 @@
             const file = elements.imageFile.files[0];
             if (!file) {
                 elements.selectedFile.textContent = "No image selected yet.";
+                resetSelectionState();
+                showScreen("upload");
                 return;
             }
 
             previewLocalFile(file);
-            state.faces = [];
-            state.selectedIds = new Set();
-            state.uploadedPath = "";
-            renderFaceList();
-            renderFaceOverlay();
-            resetProcessedPreview();
+            resetSelectionState();
             setStatus("Preview updated. Upload the image when you're ready.");
+            showScreen("upload");
         });
 
         elements.modeSelect.addEventListener("change", () => {
@@ -314,12 +407,13 @@
                 setStatus(error.message);
             } finally {
                 elements.uploadAnalyzeBtn.disabled = false;
+                updateActions();
             }
         });
 
         elements.processBtn.addEventListener("click", async () => {
-            if (!state.uploadedPath || state.selectedIds.size === 0) {
-                setStatus("Upload an image and select at least one face before creating output.");
+            if (!canOpenOutput()) {
+                setStatus("Upload an image and keep at least one face before creating output.");
                 return;
             }
 
@@ -353,7 +447,21 @@
             renderFaceList();
             updateActions();
             renderFaceOverlay();
-            setStatus("Selection cleared. Choose the faces you want in the output.");
+            setStatus("Selection cleared. Choose the faces you want to keep.");
+        });
+
+        elements.stepNavUpload.addEventListener("click", () => showScreen("upload"));
+        elements.stepNavSelect.addEventListener("click", () => showScreen("select"));
+        elements.stepNavOutput.addEventListener("click", () => showScreen("output"));
+        elements.backToUploadBtn.addEventListener("click", () => showScreen("upload"));
+        elements.backToSelectBtn.addEventListener("click", () => showScreen("select"));
+        elements.toOutputBtn.addEventListener("click", () => {
+            if (!canOpenOutput()) {
+                setStatus("Keep at least one detected face selected before continuing.");
+                return;
+            }
+            showScreen("output");
+            setStatus("Choose an output style, then create the final image.");
         });
 
         window.addEventListener("resize", renderFaceOverlay);
@@ -361,8 +469,11 @@
     }
 
     function init() {
+        runSplashSequence();
+        renderFaceList();
         updateActions();
         updateModeUI();
+        showScreen("upload");
         setStatus("Choose an image to begin.");
         initEvents();
     }

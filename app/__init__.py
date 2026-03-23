@@ -5,10 +5,12 @@ from flask import Flask, send_from_directory
 from app.routes.output import output_bp
 from app.routes.process import process_bp
 from app.routes.upload import upload_bp
+from app.services.anonymizer_service import purge_stale_uploads
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-UPLOAD_DIR = BASE_DIR / "uploads"
+UPLOAD_DIR = BASE_DIR / "runtime" / "uploads"
+LEGACY_UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "output"
 
 
@@ -24,6 +26,8 @@ def create_app():
 
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    purge_stale_uploads(UPLOAD_DIR)
+    purge_stale_uploads(LEGACY_UPLOAD_DIR, ttl_seconds=0)
 
     app.register_blueprint(upload_bp)
     app.register_blueprint(process_bp)

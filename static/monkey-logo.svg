@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="The Anonymous Monkey logo">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f1824" />
+      <stop offset="100%" stop-color="#13283d" />
+    </linearGradient>
+    <linearGradient id="fur" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8a6249" />
+      <stop offset="100%" stop-color="#5a3c2b" />
+    </linearGradient>
+    <linearGradient id="face" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#b68567" />
+      <stop offset="100%" stop-color="#976a4f" />
+    </linearGradient>
+    <linearGradient id="glasses" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0b1016" />
+      <stop offset="100%" stop-color="#202d3a" />
+    </linearGradient>
+    <linearGradient id="coat" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#b69c78" />
+      <stop offset="100%" stop-color="#80654a" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)" />
+  <ellipse cx="64" cy="32" rx="28" ry="16" fill="#101820" opacity="0.95" />
+  <path d="M48 18h32a0 0 0 0 1 0 0v22a10 10 0 0 1-10 10H58A10 10 0 0 1 48 40V18a0 0 0 0 1 0 0z" fill="#1b2733" />
+  <ellipse cx="32" cy="60" rx="11" ry="14" fill="#5a3c2b" />
+  <ellipse cx="96" cy="60" rx="11" ry="14" fill="#5a3c2b" />
+  <ellipse cx="64" cy="60" rx="31" ry="28" fill="url(#fur)" />
+  <ellipse cx="64" cy="68" rx="22" ry="20" fill="url(#face)" />
+  <rect x="38" y="55" width="24" height="16" rx="7" fill="url(#glasses)" stroke="#4b5b68" stroke-width="2" />
+  <rect x="66" y="55" width="24" height="16" rx="7" fill="url(#glasses)" stroke="#4b5b68" stroke-width="2" />
+  <rect x="60" y="60" width="8" height="4" rx="2" fill="#4b5b68" />
+  <g transform="translate(84 58)">
+    <path d="M0 -6 L1.7 -1.7 L6 0 L1.7 1.7 L0 6 L-1.7 1.7 L-6 0 L-1.7 -1.7 Z" fill="#f3fbff" opacity="0">
+      <animate attributeName="opacity" values="0;0;1;0.85;0" keyTimes="0;0.78;0.82;0.86;1" dur="10s" repeatCount="indefinite" />
+      <animateTransform attributeName="transform" type="scale" values="0.6;0.6;1.15;0.95;0.6" keyTimes="0;0.78;0.82;0.86;1" dur="10s" repeatCount="indefinite" />
+    </path>
+  </g>
+  <ellipse cx="64" cy="78" rx="10" ry="7" fill="#d2ab90" opacity="0.95" />
+  <path d="M59 77q5 5 10 0" fill="none" stroke="#5b3e2d" stroke-width="2" stroke-linecap="round" />
+  <path d="M37 116V92c0-11 12-20 27-20s27 9 27 20v24z" fill="url(#coat)" />
+  <path d="M49 82h15l-8 19z" fill="#ddd0b7" />
+  <path d="M79 82H64l8 19z" fill="#ddd0b7" />
+  <circle cx="64" cy="95" r="2.5" fill="#4e3c2f" />
+  <circle cx="64" cy="103" r="2.5" fill="#4e3c2f" />
+  <path d="M20 108c14-9 22-27 24-35" fill="none" stroke="#8d7357" stroke-width="8" stroke-linecap="round" />
+  <path d="M108 108c-14-9-22-27-24-35" fill="none" stroke="#8d7357" stroke-width="8" stroke-linecap="round" />
+  <path d="M24 26c10-10 22-16 40-16 18 0 30 6 40 16" fill="none" stroke="#3ac0ff" stroke-width="3" opacity="0.75" />
+</svg>

@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from uuid import uuid4
 
@@ -9,14 +10,25 @@ from core.pipeline.processor import Processor
 
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+STALE_UPLOAD_TTL_SECONDS = 60 * 5
 
 processor = Processor()
 
 
-def _validate_image_path(filepath: str) -> Path:
-    path = Path(filepath)
-    if not path.is_absolute():
-        path = Path.cwd() / path
+def _resolve_upload_path(file_id: str, upload_dir: str | Path) -> Path:
+    filename = Path(file_id or "").name
+    if not filename or filename != file_id:
+        raise ValueError("Invalid file reference.")
+
+    extension = Path(filename).suffix.lower()
+    if extension not in ALLOWED_EXTENSIONS:
+        raise ValueError("Unsupported file type.")
+
+    upload_root = Path(upload_dir).resolve()
+    path = (upload_root / filename).resolve()
+
+    if path.parent != upload_root:
+        raise ValueError("Invalid file reference.")
 
     if not path.exists() or not path.is_file():
         raise FileNotFoundError("Image file was not found.")
@@ -35,6 +47,32 @@ def _face_payload(faces):
     return [face.to_dict() for face in faces]
 
 
+def _delete_file(path: Path | None):
+    if not path:
+        return
+
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def purge_stale_uploads(upload_dir: str | Path, ttl_seconds: int = STALE_UPLOAD_TTL_SECONDS):
+    upload_root = Path(upload_dir)
+    if not upload_root.exists():
+        return
+
+    cutoff = time.time() - ttl_seconds
+    for path in upload_root.iterdir():
+        if not path.is_file():
+            continue
+        try:
+            if path.stat().st_mtime < cutoff:
+                path.unlink(missing_ok=True)
+        except OSError:
+            continue
+
+
 def save_uploaded_file(file: FileStorage, upload_dir: str | Path) -> Path:
     filename = secure_filename(file.filename or "")
     if not filename:
@@ -46,46 +84,59 @@ def save_uploaded_file(file: FileStorage, upload_dir: str | Path) -> Path:
 
     upload_root = Path(upload_dir)
     upload_root.mkdir(parents=True, exist_ok=True)
+    purge_stale_uploads(upload_root)
 
     saved_path = upload_root / f"{uuid4().hex}{extension}"
     file.save(saved_path)
     return saved_path
 
 
-def analyze_image(filepath: str):
-    source_path = _validate_image_path(filepath)
+def analyze_image(file_id: str, upload_dir: str | Path):
+    source_path = _resolve_upload_path(file_id, upload_dir)
     faces = processor.detect_faces(str(source_path))
 
     return {
-        "filepath": str(source_path),
+        "file_id": source_path.name,
         "faces": _face_payload(faces),
         "face_count": len(faces),
     }
 
 
-def process_image(filepath: str, allowed_ids=None, mode="blur", options=None, output_dir="output"):
-    source_path = _validate_image_path(filepath)
+def process_image(file_id: str, allowed_ids=None, mode="blur", options=None, upload_dir="uploads", output_dir="output"):
+    source_path = _resolve_upload_path(file_id, upload_dir)
     selected_ids = allowed_ids or []
-    process_options = options or {}
+    process_options = dict(options or {})
+    overlay_path = None
 
-    output_image, faces = processor.process_image(
-        str(source_path),
-        selected_ids,
-        mode=mode,
-        options=process_options,
-    )
+    mask_image_id = process_options.get("mask_image_id") or process_options.get("mask_image_path")
+    if mask_image_id:
+        overlay_path = _resolve_upload_path(mask_image_id, upload_dir)
+        process_options["mask_image_path"] = str(overlay_path)
+    else:
+        process_options.pop("mask_image_path", None)
 
-    if output_image is None:
-        raise ValueError("Processor could not read the input image.")
+    try:
+        output_image, faces = processor.process_image(
+            str(source_path),
+            selected_ids,
+            mode=mode,
+            options=process_options,
+        )
 
-    output_path = _build_output_path(output_dir, source_path)
-    success = cv2.imwrite(str(output_path), output_image)
-    if not success:
-        raise RuntimeError("Failed to save processed image.")
+        if output_image is None:
+            raise ValueError("Processor could not read the input image.")
+
+        output_path = _build_output_path(output_dir, source_path)
+        success = cv2.imwrite(str(output_path), output_image)
+        if not success:
+            raise RuntimeError("Failed to save processed image.")
+    finally:
+        _delete_file(source_path)
+        _delete_file(overlay_path)
 
     return {
-        "filepath": str(source_path),
-        "output_path": str(output_path),
+        "file_id": source_path.name,
+        "output_file": output_path.name,
         "faces": _face_payload(faces),
         "face_count": len(faces),
         "mode": mode,

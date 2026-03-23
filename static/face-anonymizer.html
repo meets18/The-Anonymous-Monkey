@@ -3,126 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Anonymizer</title>
+    <title>The Anonymous Monkey</title>
+    <link rel="icon" type="image/svg+xml" href="/static/monkey-logo.svg">
+    <link rel="apple-touch-icon" href="/static/monkey-logo.svg">
     <link rel="stylesheet" href="/static/css/workspace-ui.css">
 </head>
-<body>
+<body class="splash-active">
+    <div class="splash-screen" id="splashScreen" aria-hidden="true">
+        <div class="splash-stage">
+            <div class="splash-glow"></div>
+            <div class="splash-monkey">
+                <div class="splash-monkey-head">
+                    <span class="splash-monkey-ear splash-monkey-ear-left"></span>
+                    <span class="splash-monkey-ear splash-monkey-ear-right"></span>
+                    <div class="splash-monkey-face">
+                        <span class="splash-monkey-eye splash-monkey-eye-left"></span>
+                        <span class="splash-monkey-eye splash-monkey-eye-right"></span>
+                        <span class="splash-monkey-muzzle"></span>
+                    </div>
+                </div>
+                <div class="splash-hat"></div>
+                <div class="splash-sunglasses">
+                    <span class="splash-lens splash-lens-left"></span>
+                    <span class="splash-lens splash-lens-right"></span>
+                    <span class="splash-bridge"></span>
+                </div>
+                <div class="splash-coat">
+                    <span class="splash-lapel splash-lapel-left"></span>
+                    <span class="splash-lapel splash-lapel-right"></span>
+                    <span class="splash-button splash-button-top"></span>
+                    <span class="splash-button splash-button-bottom"></span>
+                </div>
+                <div class="splash-arm splash-arm-left"></div>
+                <div class="splash-arm splash-arm-right"></div>
+            </div>
+            <div class="splash-title">The Anonymous Monkey</div>
+        </div>
+    </div>
     <div class="site-shell">
         <header class="topbar">
-            <a class="brand" href="#hero" aria-label="Face Anonymizer home">
-                <div class="brand-mark" aria-hidden="true">Logo</div>
+            <a class="brand" href="#upload-screen" aria-label="The Anonymous Monkey home">
+                <div class="brand-mark" aria-hidden="true">
+                    <img class="brand-logo" src="/static/monkey-logo.svg" alt="The Anonymous Monkey logo">
+                </div>
                 <div class="brand-copy">
-                    <span class="brand-name">Face Anonymizer</span>
-                    <span class="brand-tag">Private image editing</span>
+                    <span class="brand-name">The Anonymous Monkey</span>
+                    <span class="brand-tag">Quiet privacy for curious humans</span>
                 </div>
             </a>
+            <p class="topbar-note">Three calm steps. Upload, choose, finish.</p>
         </header>
 
         <main>
-            <section class="hero" id="hero">
-                <div class="hero-copy">
-                    <span class="eyebrow">Fast private workflow</span>
-                    <h1>Upload an image, choose the faces, and get the final result.</h1>
-                    <p>
-                        A simpler workspace for anonymizing people in photos without exposing any technical process details.
-                    </p>
+            <section class="intro-band">
+                <div class="intro-copy">
+                    <p class="intro-lead">Drop in a photo, choose the faces to keep, and export the result in a calmer workflow.</p>
                 </div>
-
-                <div class="hero-upload" id="upload">
-                    <form id="uploadForm" class="upload-panel">
-                        <label class="upload-dropzone" for="imageFile">
-                            <input id="imageFile" name="file" type="file" accept="image/*" required>
-                            <span class="dropzone-kicker">Step 1</span>
-                            <span class="dropzone-title">Select image files</span>
-                            <span class="dropzone-subtitle">Drag and drop here or click to browse</span>
-                        </label>
-
-                        <div class="selected-file" id="selectedFile">No image selected yet.</div>
-
-                        <div class="upload-actions">
-                            <button class="btn btn-primary" id="uploadAnalyzeBtn" type="submit">Upload image</button>
+                <div class="monkey-stage" aria-hidden="true">
+                    <div class="stage-screen"></div>
+                    <div class="stage-glow"></div>
+                    <div class="monkey-figure">
+                        <div class="monkey-hat"></div>
+                        <div class="monkey-head">
+                            <span class="monkey-ear monkey-ear-left"></span>
+                            <span class="monkey-ear monkey-ear-right"></span>
+                            <div class="monkey-face">
+                                <span class="monkey-eye monkey-eye-left"></span>
+                                <span class="monkey-eye monkey-eye-right"></span>
+                                <span class="monkey-muzzle"></span>
+                            </div>
                         </div>
-                    </form>
+                        <div class="monkey-collar"></div>
+                        <div class="monkey-coat">
+                            <span class="coat-lapel coat-lapel-left"></span>
+                            <span class="coat-lapel coat-lapel-right"></span>
+                            <span class="coat-button coat-button-top"></span>
+                            <span class="coat-button coat-button-bottom"></span>
+                        </div>
+                        <div class="monkey-arm monkey-arm-left"></div>
+                        <div class="monkey-arm monkey-arm-right"></div>
+                    </div>
+                    <div class="stage-caption">Anonymous mode engaged</div>
                 </div>
             </section>
 
+            <nav class="stepper" aria-label="Workflow progress">
+                <button class="step-pill active" id="stepNavUpload" type="button" data-screen="upload" aria-current="step">
+                    <span class="step-number">1</span>
+                    <span>Upload</span>
+                </button>
+                <button class="step-pill" id="stepNavSelect" type="button" data-screen="select" disabled>
+                    <span class="step-number">2</span>
+                    <span>Select Faces</span>
+                </button>
+                <button class="step-pill" id="stepNavOutput" type="button" data-screen="output" disabled>
+                    <span class="step-number">3</span>
+                    <span>Choose Output</span>
+                </button>
+            </nav>
+
             <p class="status-banner" id="statusBanner">Choose an image to begin.</p>
 
-            <section class="workspace-grid">
-                <article class="panel preview-panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="panel-step">Step 2</span>
-                            <h2>Select faces</h2>
-                            <p>Choose which detected faces should appear in the final anonymized image.</p>
+            <section class="screen-panel screen-panel-active" id="upload-screen" data-screen="upload">
+                <div class="screen-copy">
+                    <h2>Upload a photo</h2>
+                    <p>Start with one image. We will preview it first, then find the faces for you.</p>
+                    <div class="helper-card">
+                        <strong>Helpful tip</strong>
+                        <p>Clear faces and good lighting help the detector do its best work. Supported files: JPG, JPEG, PNG, BMP, and WEBP.</p>
+                    </div>
+                </div>
+
+                <form id="uploadForm" class="upload-panel">
+                    <label class="upload-dropzone" for="imageFile">
+                        <input id="imageFile" name="file" type="file" accept="image/*" required>
+                        <span class="dropzone-icon" aria-hidden="true">+</span>
+                        <span class="dropzone-title">Pick an image</span>
+                        <span class="dropzone-subtitle">Drag it here or click to browse</span>
+                        <span class="dropzone-meta">Supports JPG, JPEG, PNG, BMP, and WEBP</span>
+                    </label>
+
+                    <div class="selected-file" id="selectedFile">No image selected yet.</div>
+
+                    <div class="upload-actions">
+                        <button class="btn btn-primary" id="uploadAnalyzeBtn" type="submit">Upload and continue</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="screen-panel" id="select-screen" data-screen="select">
+                <div class="panel-header panel-header-stacked">
+                    <div>
+                        <h2>Select faces to keep</h2>
+                        <p>We highlight each detected face. Keep checked faces visible in the final image.</p>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="btn btn-secondary" id="selectAllBtn" type="button">Select all</button>
+                        <button class="btn btn-ghost" id="clearAllBtn" type="button">Clear</button>
+                    </div>
+                </div>
+
+                <div class="screen-grid">
+                    <article class="panel preview-panel compact-panel">
+                        <div class="preview-frame" id="select">
+                            <img id="originalPreview" alt="Original upload preview">
+                            <div class="face-overlay" id="faceOverlay"></div>
+                            <div class="preview-placeholder" id="originalPlaceholder">Your uploaded image will appear here.</div>
                         </div>
-                        <div class="panel-actions">
-                            <button class="btn btn-secondary" id="selectAllBtn" type="button">Select all</button>
-                            <button class="btn btn-ghost" id="clearAllBtn" type="button">Clear</button>
+                    </article>
+
+                    <article class="panel compact-panel">
+                        <div class="mini-heading">Detected faces</div>
+                        <div class="face-list" id="faceList">
+                            <div class="empty-state">Detected faces will show up here after upload.</div>
                         </div>
-                    </div>
+                    </article>
+                </div>
 
-                    <div class="preview-frame" id="select">
-                        <img id="originalPreview" alt="Original upload preview">
-                        <div class="face-overlay" id="faceOverlay"></div>
-                        <div class="preview-placeholder" id="originalPlaceholder">Your uploaded image will appear here.</div>
-                    </div>
+                <div class="screen-actions between-actions">
+                    <button class="btn btn-ghost" id="backToUploadBtn" type="button">Back</button>
+                    <button class="btn btn-primary" id="toOutputBtn" type="button" disabled>Continue to output</button>
+                </div>
+            </section>
 
-                    <div class="face-list" id="faceList">
-                        <div class="empty-state">Detected faces will show up here after upload.</div>
+            <section class="screen-panel" id="output-screen" data-screen="output">
+                <div class="panel-header panel-header-stacked">
+                    <div>
+                        <h2>Choose the output style</h2>
+                        <p>Pick how hidden faces should look, then generate the final image.</p>
                     </div>
-                </article>
+                </div>
 
-                <article class="panel output-panel" id="output">
-                    <div class="panel-header">
-                        <div>
-                            <span class="panel-step">Step 3</span>
-                            <h2>Output</h2>
-                            <p>Generate the final image once your face selection looks right.</p>
+                <div class="screen-grid output-grid">
+                    <article class="panel compact-panel">
+                        <div class="mini-heading">Output settings</div>
+
+                        <div class="option-group">
+                            <label class="option-label" for="modeSelect">Output style</label>
+                            <select id="modeSelect" class="option-input">
+                                <option value="blur">Blur</option>
+                                <option value="pixelate">Pixelate</option>
+                                <option value="mask">Mask</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <div class="option-group">
-                        <label class="option-label" for="modeSelect">Output style</label>
-                        <select id="modeSelect" class="option-input">
-                            <option value="blur">Blur</option>
-                            <option value="pixelate">Pixelate</option>
-                            <option value="mask">Mask</option>
-                        </select>
-                    </div>
+                        <div class="option-group hidden" id="pixelateOptions">
+                            <label class="option-label" for="pixelateStyle">Pixelate look</label>
+                            <select id="pixelateStyle" class="option-input">
+                                <option value="standard">Standard pixelate</option>
+                                <option value="bw_blocks">Black and white blocks</option>
+                            </select>
+                        </div>
 
-                    <div class="option-group hidden" id="pixelateOptions">
-                        <label class="option-label" for="pixelateStyle">Pixelate look</label>
-                        <select id="pixelateStyle" class="option-input">
-                            <option value="standard">Standard pixelate</option>
-                            <option value="bw_blocks">Black and white blocks</option>
-                        </select>
-                    </div>
+                        <div class="option-group hidden" id="maskOptions">
+                            <label class="option-label" for="maskStyle">Mask style</label>
+                            <select id="maskStyle" class="option-input">
+                                <option value="black_box">Black square</option>
+                                <option value="image_overlay">Custom image overlay</option>
+                            </select>
+                        </div>
 
-                    <div class="option-group hidden" id="maskOptions">
-                        <label class="option-label" for="maskStyle">Mask style</label>
-                        <select id="maskStyle" class="option-input">
-                            <option value="black_box">Black square</option>
-                            <option value="image_overlay">Custom image overlay</option>
-                        </select>
-                    </div>
+                        <div class="option-group hidden" id="maskImageGroup">
+                            <label class="option-label" for="maskImageFile">Overlay image</label>
+                            <input id="maskImageFile" class="option-input" type="file" accept="image/*">
+                            <div class="selected-file" id="maskImageStatus">No overlay image selected.</div>
+                        </div>
 
-                    <div class="option-group hidden" id="maskImageGroup">
-                        <label class="option-label" for="maskImageFile">Overlay image</label>
-                        <input id="maskImageFile" class="option-input" type="file" accept="image/*">
-                        <div class="selected-file" id="maskImageStatus">No overlay image selected.</div>
-                    </div>
+                        <div class="helper-card subtle-card">
+                            <strong>Small note</strong>
+                            <p>Blur feels soft, pixelate feels obvious, and mask is the boldest option.</p>
+                        </div>
+                    </article>
 
-                    <div class="preview-frame output-frame">
-                        <img id="processedPreview" alt="Processed image preview">
-                        <div class="preview-placeholder" id="processedPlaceholder">Your final anonymized output will appear here.</div>
-                    </div>
+                    <article class="panel compact-panel">
+                        <div class="mini-heading">Preview</div>
+                        <div class="preview-frame output-frame">
+                            <img id="processedPreview" alt="Processed image preview">
+                            <div class="preview-placeholder" id="processedPlaceholder">Your final anonymized output will appear here.</div>
+                        </div>
+                    </article>
+                </div>
 
+                <div class="screen-actions between-actions">
+                    <button class="btn btn-ghost" id="backToSelectBtn" type="button">Back</button>
                     <div class="output-actions">
                         <button class="btn btn-primary" id="processBtn" type="button" disabled>Create output</button>
                         <a class="btn btn-secondary hidden" id="downloadOutput" download>Download image</a>
                     </div>
-                </article>
+                </div>
             </section>
         </main>
     </div>
@@ -130,3 +238,4 @@
     <script src="/static/js/workspace-ui.js"></script>
 </body>
 </html>
+

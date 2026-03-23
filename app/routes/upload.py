@@ -23,7 +23,8 @@ def upload_file():
 
     return jsonify(
         {
-            "filepath": str(saved_path),
+            "file_id": Path(saved_path).name,
+            "filepath": Path(saved_path).name,
             "filename": Path(saved_path).name,
         }
     ), 201
