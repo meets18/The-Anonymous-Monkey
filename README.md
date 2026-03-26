@@ -1,6 +1,3 @@
-Here’s a **clean, concise, resume-quality README** tailored to your project 👇
-
----
 
 # 🐒 The Anonymous Monkey — Face Anonymizer
 
