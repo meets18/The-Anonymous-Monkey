@@ -30,19 +30,14 @@ A full-stack AI-powered web application that detects faces in images and selecti
 **Backend**
 
 * Python, Flask
-* Gunicorn (production server)
+
 
 **Computer Vision**
 
 * OpenCV (face detection, processing)
 * MediaPipe (enhanced detection support)
 
-**Infrastructure**
 
-* Docker (containerization)
-* Render / Cloud deployment ready
-
----
 
 ## How It Works
 
