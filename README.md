@@ -2,7 +2,7 @@
 # 🐒 The Anonymous Monkey — Face Anonymizer
 
 A full-stack AI-powered web application that detects faces in images and selectively anonymizes them using blur, pixelation, or masking techniques.
-Desktop only(for now)
+
 ---
 
 ## 🚀 Features
