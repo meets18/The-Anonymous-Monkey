@@ -11,6 +11,7 @@ from core.pipeline.processor import Processor
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 STALE_UPLOAD_TTL_SECONDS = 60 * 5
+STALE_OUTPUT_TTL_SECONDS = 60 * 5
 
 processor = Processor()
 
@@ -57,13 +58,13 @@ def _delete_file(path: Path | None):
         pass
 
 
-def purge_stale_uploads(upload_dir: str | Path, ttl_seconds: int = STALE_UPLOAD_TTL_SECONDS):
-    upload_root = Path(upload_dir)
-    if not upload_root.exists():
+def purge_stale_files(directory: str | Path, ttl_seconds: int):
+    root = Path(directory)
+    if not root.exists():
         return
 
     cutoff = time.time() - ttl_seconds
-    for path in upload_root.iterdir():
+    for path in root.iterdir():
         if not path.is_file():
             continue
         try:
@@ -71,6 +72,14 @@ def purge_stale_uploads(upload_dir: str | Path, ttl_seconds: int = STALE_UPLOAD_
                 path.unlink(missing_ok=True)
         except OSError:
             continue
+
+
+def purge_stale_uploads(upload_dir: str | Path, ttl_seconds: int = STALE_UPLOAD_TTL_SECONDS):
+    purge_stale_files(upload_dir, ttl_seconds)
+
+
+def purge_stale_outputs(output_dir: str | Path, ttl_seconds: int = STALE_OUTPUT_TTL_SECONDS):
+    purge_stale_files(output_dir, ttl_seconds)
 
 
 def save_uploaded_file(file: FileStorage, upload_dir: str | Path) -> Path:
@@ -116,6 +125,8 @@ def process_image(file_id: str, allowed_ids=None, mode="blur", options=None, upl
         process_options.pop("mask_image_path", None)
 
     try:
+        purge_stale_outputs(output_dir)
+
         output_image, faces = processor.process_image(
             str(source_path),
             selected_ids,

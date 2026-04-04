@@ -1,0 +1,20 @@
+Folder Guide - core/models
+
+Purpose
+- This folder stores simple model/data objects used by the detection and pipeline layers.
+
+Files
+- face.py
+  Defines the Face class.
+
+What Face represents
+- id:
+  unique face identifier used by the frontend and processing logic.
+- bbox:
+  bounding box as x, y, width, height.
+- confidence:
+  a stored score value, currently defaulting to 1.0.
+
+Why this matters
+- Using a Face object gives the pipeline a stable, serializable representation of each detection.
+- to_dict() is used when sending face data back through the API.

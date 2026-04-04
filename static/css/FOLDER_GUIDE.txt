@@ -1,0 +1,27 @@
+Folder Guide - static/css
+
+Purpose
+- Holds the main stylesheet for the app.
+
+Current file
+- workspace-ui.css
+
+What the stylesheet covers
+- Global color variables and visual theme
+- Header branding
+- Splash intro overlay and monkey animation
+- Intro band and landing visuals
+- Workflow stepper
+- Screen panels and internal layout
+- Upload card and drag/drop area styling
+- Face list and overlay box styles
+- Output settings panel styling
+- Buttons, helper cards, and empty states
+- Responsive layout behavior for smaller screens
+
+Why this file is important
+- A large amount of product identity now lives in CSS:
+  the splash,
+  the monkey visuals,
+  the logo fit,
+  and the upload-screen composition

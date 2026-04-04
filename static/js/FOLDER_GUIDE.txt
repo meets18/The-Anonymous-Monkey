@@ -1,0 +1,23 @@
+Folder Guide - static/js
+
+Purpose
+- Holds the browser-side application behavior.
+
+Current file
+- workspace-ui.js
+
+What it does
+- Runs the splash intro sequence and reveals the site after the intro completes
+- Stores the frontend workflow state in a single state object
+- Uploads files to the backend
+- Calls /analyze and /process
+- Updates the stepper and active screen
+- Renders the detected face list
+- Draws bounding boxes over the image preview
+- Manages selection state
+- Handles mask overlay uploads
+- Shows the processed preview and download link
+
+Why it matters
+- Without this file the app is mostly static HTML and cannot progress through the workflow.
+- It is also responsible for clearing the splash intro state on initial load.

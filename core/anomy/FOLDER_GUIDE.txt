@@ -1,0 +1,32 @@
+Folder Guide - core/anomy
+
+Purpose
+- This folder contains the actual anonymization effects applied to selected faces.
+
+Files
+- blur.py
+  Soft blur anonymization using a feathered elliptical mask.
+
+- pixelate.py
+  Pixelation anonymization with:
+  standard pixelate
+  black-and-white block pixelate
+
+- mask.py
+  Mask anonymization with:
+  black square
+  custom overlay image
+
+Important detail
+- All effects only apply to face IDs that are selected by the user.
+- In the current implementation, selected IDs mean "faces to process/anonymize", while the UI text describes them as "faces to keep visible". That mismatch is important for future cleanup because it affects how the UI wording matches the backend behavior.
+
+Effect summary
+- Blur:
+  blends a blurred ROI with the original ROI through a soft mask.
+
+- Pixelate:
+  shrinks and re-expands the ROI to create visible blockiness.
+
+- Mask:
+  either paints a solid black square or overlays another image.

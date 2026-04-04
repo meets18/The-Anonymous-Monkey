@@ -28,6 +28,7 @@ body {
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.24), transparent 24%),
         radial-gradient(circle at right 12% top 18%, rgba(22, 136, 183, 0.12), transparent 20%),
         linear-gradient(180deg, #d8d2e3 0%, #c8c1d7 100%);
+    overflow-x: hidden;
 }
 
 a {
@@ -1149,7 +1150,10 @@ body.splash-complete .splash-screen {
     display: none;
     max-width: 100%;
     max-height: 520px;
+    width: 100%;
+    height: 100%;
     border-radius: 18px;
+    object-fit: contain;
 }
 
 .preview-frame img.visible {
@@ -1375,7 +1379,7 @@ body.splash-complete .splash-screen {
 
 @media (max-width: 760px) {
     .site-shell {
-        width: min(100% - 18px, 1200px);
+        width: min(100% - 16px, 1200px);
         padding-top: 14px;
     }
 
@@ -1392,26 +1396,213 @@ body.splash-complete .splash-screen {
 
     .stepper {
         display: flex;
+        gap: 10px;
     }
 
     .topbar {
         border-radius: 28px;
+        padding: 14px 16px;
+    }
+
+    .brand {
+        gap: 10px;
+    }
+
+    .brand-mark {
+        width: 74px;
+        height: 46px;
+    }
+
+    .brand-name {
+        font-size: 18px;
+    }
+
+    .topbar-note {
+        max-width: none;
+        text-align: left;
+    }
+
+    .intro-band {
+        margin-top: 18px;
+        padding: 20px 18px;
+        border-radius: 24px;
+    }
+
+    .intro-lead {
+        font-size: clamp(1.55rem, 7vw, 2.35rem);
+        line-height: 1.06;
+    }
+
+    .monkey-stage {
+        min-height: 210px;
+    }
+
+    .stage-caption {
+        left: 14px;
+        right: 14px;
+        bottom: 12px;
+        text-align: center;
+    }
+
+    .step-pill {
+        justify-content: flex-start;
+        width: 100%;
+        min-height: 60px;
+        padding: 0 16px;
     }
 
     .screen-panel,
     .upload-panel,
     .compact-panel {
-        padding: 18px;
+        padding: 16px;
+        border-radius: 24px;
     }
 
     .preview-frame,
     .output-frame {
-        min-height: 320px;
+        min-height: 280px;
     }
 
     .btn {
         width: 100%;
     }
+
+    .upload-dropzone {
+        min-height: 240px;
+        padding: 28px 18px;
+        border-radius: 24px;
+    }
+
+    .dropzone-icon {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 16px;
+        border-radius: 18px;
+        font-size: 2rem;
+    }
+
+    .dropzone-title {
+        font-size: clamp(1.6rem, 7vw, 2.1rem);
+    }
+
+    .dropzone-subtitle {
+        font-size: 0.98rem;
+    }
+
+    .dropzone-meta {
+        margin-top: 14px;
+        font-size: 0.88rem;
+        white-space: normal;
+    }
+
+    .selected-file {
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        overflow-wrap: anywhere;
+    }
+
+    .face-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .face-toggle {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .output-actions,
+    .panel-actions {
+        width: 100%;
+    }
+
+    .screen-actions {
+        gap: 10px;
+    }
+
+    .between-actions {
+        margin-top: 18px;
+    }
 }
 
+@media (max-width: 520px) {
+    .site-shell {
+        width: min(100% - 12px, 1200px);
+        padding-bottom: 24px;
+    }
 
+    .topbar,
+    .status-banner,
+    .stepper,
+    .screen-panel {
+        border-radius: 20px;
+    }
+
+    .screen-copy h2,
+    .panel-header h2 {
+        font-size: clamp(1.6rem, 8vw, 2.2rem);
+    }
+
+    .screen-copy p,
+    .panel-header p,
+    .helper-card p,
+    .face-caption,
+    .preview-placeholder,
+    .empty-state {
+        line-height: 1.55;
+    }
+
+    .panel-header {
+        gap: 12px;
+    }
+
+    .panel-actions,
+    .output-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .upload-actions {
+        margin-top: 14px;
+    }
+
+    #uploadAnalyzeBtn {
+        min-width: 0;
+        min-height: 58px;
+        padding: 0 20px;
+        font-size: 1rem;
+    }
+
+    .preview-frame,
+    .output-frame {
+        min-height: 240px;
+    }
+
+    .face-badge {
+        left: 8px;
+        top: -10px;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+
+@media (max-height: 700px) and (max-width: 900px) {
+    .intro-band {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .monkey-stage {
+        min-height: 190px;
+    }
+
+    .upload-dropzone {
+        min-height: 220px;
+    }
+
+    .preview-frame,
+    .output-frame {
+        min-height: 220px;
+    }
+}

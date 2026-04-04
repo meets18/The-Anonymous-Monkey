@@ -1,0 +1,29 @@
+Folder Guide - core/detection
+
+Purpose
+- This folder is responsible for finding faces in an image.
+
+Files
+- __init__.py
+  Package marker.
+
+- face_detector.py
+  Main face detection implementation.
+
+How detection works
+- Converts the image to grayscale
+- Applies histogram equalization to improve contrast
+- Runs several OpenCV Haar cascade classifiers
+- Uses both frontal and profile detection
+- Flips the image for mirrored profile detection
+- Rotates the image by small angles and maps detections back to original coordinates
+- Deduplicates overlapping results using IoU
+- Wraps results into Face model objects
+
+Why this design was chosen
+- Haar cascades are simple, built into OpenCV, and require no separate model download.
+- Rotational retries improve detection for slightly tilted faces without adding a much heavier model.
+
+Tradeoffs
+- This is lightweight and easy to run locally.
+- It is less accurate than more modern deep-learning face detectors.

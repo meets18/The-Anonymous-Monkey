@@ -1,0 +1,30 @@
+Folder Guide - app/routes
+
+Purpose
+- This folder groups the HTTP endpoints by responsibility.
+
+Files
+- upload.py
+  Defines POST /upload.
+  Accepts the raw browser file upload.
+  Returns a safe file reference that the frontend uses in later calls.
+
+- process.py
+  Defines:
+  POST /analyze
+  POST /process
+
+  /analyze:
+  validates the file reference and returns detected face data.
+
+  /process:
+  validates user selections and options, runs anonymization, and returns the output filename/URL.
+
+- output.py
+  Defines GET /output/<filename>.
+  Serves generated output files from the configured output directory.
+
+Important behavior notes
+- These modules do request validation and error formatting.
+- They do not directly implement image algorithms.
+- They depend on app/services/anonymizer_service.py for the actual file and processing workflow.

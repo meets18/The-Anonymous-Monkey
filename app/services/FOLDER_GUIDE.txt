@@ -1,0 +1,34 @@
+Folder Guide - app/services
+
+Purpose
+- This folder contains service-layer logic that sits between Flask routes and the lower-level image-processing code.
+
+Current file
+- anonymizer_service.py
+
+What anonymizer_service.py does
+- Validates uploaded file types
+- Saves files into the temporary upload directory
+- Resolves safe file references into real paths
+- Protects against path traversal by restricting files to the upload directory
+- Deletes temporary files when processing is complete
+- Purges stale temporary uploads
+- Calls the core Processor for face detection and anonymization
+- Writes the processed output file into output/
+
+Important functions
+- save_uploaded_file()
+  Saves a sanitized file with a UUID-based name.
+
+- analyze_image()
+  Resolves the upload reference and returns face data.
+
+- process_image()
+  Resolves the upload reference, runs anonymization, writes the output, and deletes temporary source files.
+
+- purge_stale_uploads()
+  Removes old temporary files based on a TTL window.
+
+Security and privacy role
+- This file is the main privacy and path-safety boundary in the backend.
+- It is the place where temporary upload retention is controlled.
